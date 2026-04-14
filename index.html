@@ -1,0 +1,301 @@
+
+<h2 class="sr-only">SC Digital Support BD Tracker — Van's command center for the Digital Support LOB at Staff Callture</h2>
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-sans); }
+  .tabs { display: flex; gap: 4px; margin-bottom: 1.5rem; border-bottom: 0.5px solid var(--color-border-tertiary); padding-bottom: 0; }
+  .tab { padding: 8px 16px; font-size: 13px; cursor: pointer; border: none; background: none; color: var(--color-text-secondary); border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab.active { color: var(--color-text-primary); border-bottom: 2px solid var(--color-text-primary); font-weight: 500; }
+  .section { display: none; }
+  .section.active { display: block; }
+  .metric-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 1.5rem; }
+  .metric { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 12px 14px; }
+  .metric-label { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .metric-value { font-size: 22px; font-weight: 500; color: var(--color-text-primary); }
+  .metric-sub { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+  .card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1rem 1.25rem; margin-bottom: 1rem; }
+  .card-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 12px; }
+  .pipeline-item { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .pipeline-item:last-child { border-bottom: none; padding-bottom: 0; }
+  .status-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .dot-new { background: #888780; }
+  .dot-contacted { background: #378ADD; }
+  .dot-audit { background: #EF9F27; }
+  .dot-proposal { background: #9F77DD; }
+  .dot-closed { background: #1D9E75; }
+  .prospect-name { font-size: 13px; font-weight: 500; color: var(--color-text-primary); flex: 1; }
+  .prospect-meta { font-size: 11px; color: var(--color-text-secondary); }
+  .stage-badge { font-size: 11px; padding: 3px 8px; border-radius: var(--border-radius-md); }
+  .badge-new { background: var(--color-background-secondary); color: var(--color-text-secondary); }
+  .badge-contacted { background: #E6F1FB; color: #185FA5; }
+  .badge-audit { background: #FAEEDA; color: #854F0B; }
+  .badge-proposal { background: #EEEDFE; color: #3C3489; }
+  .badge-closed { background: #E1F5EE; color: #0F6E56; }
+  .add-btn { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--color-text-secondary); cursor: pointer; padding: 8px 0; border: none; background: none; width: 100%; }
+  .add-btn:hover { color: var(--color-text-primary); }
+  .audit-section { margin-bottom: 1.25rem; }
+  .audit-section-title { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 8px; }
+  .audit-check { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .audit-check:last-child { border-bottom: none; }
+  .audit-check input[type=checkbox] { margin-top: 2px; flex-shrink: 0; }
+  .audit-check-label { font-size: 13px; color: var(--color-text-primary); }
+  .audit-check-desc { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+  .score-bar-wrap { height: 6px; background: var(--color-background-secondary); border-radius: 3px; margin-top: 1rem; overflow: hidden; }
+  .score-bar { height: 100%; border-radius: 3px; background: #1D9E75; transition: width 0.3s; }
+  .score-label { font-size: 12px; color: var(--color-text-secondary); margin-top: 6px; }
+  .log-entry { padding: 10px 0; border-bottom: 0.5px solid var(--color-border-tertiary); }
+  .log-entry:last-child { border-bottom: none; }
+  .log-date { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 3px; }
+  .log-text { font-size: 13px; color: var(--color-text-primary); }
+  .log-tag { font-size: 10px; padding: 2px 7px; border-radius: 10px; margin-left: 6px; background: var(--color-background-secondary); color: var(--color-text-secondary); }
+  .modal-overlay { display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.3); border-radius: var(--border-radius-lg); align-items: center; justify-content: center; z-index: 10; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--color-background-primary); border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); padding: 1.25rem; width: 100%; max-width: 360px; }
+  .modal h3 { font-size: 14px; font-weight: 500; margin-bottom: 1rem; }
+  .form-row { margin-bottom: 10px; }
+  .form-row label { font-size: 12px; color: var(--color-text-secondary); display: block; margin-bottom: 4px; }
+  .form-row input, .form-row select, .form-row textarea { width: 100%; font-size: 13px; }
+  .form-row textarea { height: 64px; resize: none; }
+  .modal-btns { display: flex; gap: 8px; margin-top: 1rem; justify-content: flex-end; }
+  .btn-primary { background: var(--color-text-primary); color: var(--color-background-primary); border: none; padding: 7px 16px; border-radius: var(--border-radius-md); font-size: 13px; cursor: pointer; }
+  .btn-ghost { background: none; border: 0.5px solid var(--color-border-secondary); padding: 7px 16px; border-radius: var(--border-radius-md); font-size: 13px; cursor: pointer; color: var(--color-text-secondary); }
+  .script-block { background: var(--color-background-secondary); border-left: 2px solid var(--color-border-secondary); border-radius: 0; padding: 10px 14px; font-size: 13px; color: var(--color-text-primary); line-height: 1.6; margin-bottom: 8px; }
+  .script-label { font-size: 11px; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; }
+  .copy-btn { font-size: 11px; color: var(--color-text-secondary); background: none; border: 0.5px solid var(--color-border-tertiary); padding: 3px 8px; border-radius: var(--border-radius-md); cursor: pointer; float: right; }
+  .copy-btn:hover { color: var(--color-text-primary); }
+  .wrapper { position: relative; padding: 1rem 0; }
+</style>
+
+<div class="wrapper" id="app">
+
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('pipeline')">Pipeline</button>
+    <button class="tab" onclick="switchTab('audit')">Page audit</button>
+    <button class="tab" onclick="switchTab('scripts')">Outreach scripts</button>
+    <button class="tab" onclick="switchTab('log')">Progress log</button>
+  </div>
+
+  <div class="section active" id="tab-pipeline">
+    <div class="metric-row">
+      <div class="metric"><div class="metric-label">Total leads</div><div class="metric-value" id="m-total">0</div></div>
+      <div class="metric"><div class="metric-label">Audits sent</div><div class="metric-value" id="m-audits">0</div></div>
+      <div class="metric"><div class="metric-label">Proposals</div><div class="metric-value" id="m-proposals">0</div></div>
+      <div class="metric"><div class="metric-label">Closed</div><div class="metric-value" id="m-closed">0</div></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Active leads</div>
+      <div id="prospect-list"></div>
+      <button class="add-btn" onclick="openModal()">+ add prospect</button>
+    </div>
+  </div>
+
+  <div class="section" id="tab-audit">
+    <div class="card">
+      <div class="card-title">Free page audit — 5-point framework</div>
+      <div class="audit-section">
+        <div class="audit-section-title">1 — Clarity</div>
+        <div class="audit-check"><input type="checkbox" onchange="updateScore()"><div><div class="audit-check-label">Hero message is clear within 5 seconds</div><div class="audit-check-desc">Can you tell what they do, who it's for, and what to do next — immediately?</div></div></div>
+        <div class="audit-check"><input type="checkbox" onchange="updateScore()"><div><div class="audit-check-label">No jargon or vague taglines</div><div class="audit-check-desc">"We deliver excellence" = red flag. Specific beats generic always.</div></div></div>
+      </div>
+      <div class="audit-section">
+        <div class="audit-section-title">2 — Call to action</div>
+        <div class="audit-check"><input type="checkbox" onchange="updateScore()"><div><div class="audit-check-label">There is at least one visible CTA above the fold</div><div class="audit-check-desc">Button, link, or form — something that tells the visitor what to do.</div></div></div>
+        <div class="audit-check"><input type="checkbox" onchange="updateScore()"><div><div class="audit-check-label">CTA is specific, not generic</div><div class="audit-check-desc">"Book a call" beats "learn more." Action words with outcome.</div></div></div>
+      </div>
+      <div class="audit-section">
+        <div class="audit-section-title">3 — Content quality</div>
+        <div class="audit-check"><input type="checkbox" onchange="updateScore()"><div><div class="audit-check-label">Copy speaks to the customer's problem, not just the brand</div><div class="audit-check-desc">Does the page say "we" 10x more than "you"? That's a content issue.</div></div></div>
+        <div class="audit-check"><input type="checkbox" onchange="updateScore()"><div><div class="audit-check-label">There is some form of proof (testimonial, result, client logo)</div><div class="audit-check-desc">Trust signals reduce friction. Missing = lost leads.</div></div></div>
+      </div>
+      <div class="audit-section">
+        <div class="audit-section-title">4 — SEO basics</div>
+        <div class="audit-check"><input type="checkbox" onchange="updateScore()"><div><div class="audit-check-label">Page title and meta description are present and descriptive</div><div class="audit-check-desc">Check browser tab + Google preview. Generic = invisible.</div></div></div>
+        <div class="audit-check"><input type="checkbox" onchange="updateScore()"><div><div class="audit-check-label">H1 exists and includes a relevant keyword</div><div class="audit-check-desc">One H1 per page. It should describe what the page is about.</div></div></div>
+      </div>
+      <div class="audit-section">
+        <div class="audit-section-title">5 — Mobile & speed</div>
+        <div class="audit-check"><input type="checkbox" onchange="updateScore()"><div><div class="audit-check-label">Page loads fast on mobile (under 3 seconds)</div><div class="audit-check-desc">Open on your phone. If it crawls, it's losing customers.</div></div></div>
+        <div class="audit-check"><input type="checkbox" onchange="updateScore()"><div><div class="audit-check-label">Layout doesn't break on mobile</div><div class="audit-check-desc">Text readable, buttons tappable, no horizontal scroll.</div></div></div>
+      </div>
+      <div class="score-bar-wrap"><div class="score-bar" id="score-bar" style="width:0%"></div></div>
+      <div class="score-label" id="score-label">0 / 10 checks passed</div>
+    </div>
+  </div>
+
+  <div class="section" id="tab-scripts">
+    <div class="card">
+      <div class="card-title">LinkedIn DM — cold audit offer</div>
+      <div class="script-label">Opening message</div>
+      <button class="copy-btn" onclick="copyScript('s1')">copy</button>
+      <div class="script-block" id="s1">Hey [Name], I came across [Company] and did a quick look at your page — noticed a few things that might be holding back your leads. I put together a short free audit. Mind if I send it over?</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Cold email</div>
+      <div class="script-label">Subject line</div>
+      <div class="script-block">Quick audit I did on [Company]'s page</div>
+      <div class="script-label" style="margin-top:10px">Body</div>
+      <button class="copy-btn" onclick="copyScript('s2')">copy</button>
+      <div class="script-block" id="s2">Hi [Name],
+
+I checked out [Company]'s website and put together a free 5-point page audit — specifically around your messaging, SEO basics, and CTA setup.
+
+Spotted a couple of things that could be improved to convert more visitors.
+
+Happy to send it over, no strings attached. Would that be useful?
+
+— Van
+BD | Staff Callture Digital Support</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Warm intro / referral</div>
+      <button class="copy-btn" onclick="copyScript('s3')">copy</button>
+      <div class="script-block" id="s3">Hey! So we just launched a new digital support service under SC — basically free page audits for businesses that want more visibility online. Thought of you / [their contact]. Would it be okay if I sent them a quick message?</div>
+    </div>
+    <div class="card">
+      <div class="card-title">Follow-up (if no reply after 3 days)</div>
+      <button class="copy-btn" onclick="copyScript('s4')">copy</button>
+      <div class="script-block" id="s4">Hey [Name] — just following up on this. The audit's ready, just want to make sure it gets to the right person. Let me know!</div>
+    </div>
+  </div>
+
+  <div class="section" id="tab-log">
+    <div class="card">
+      <div class="card-title">Progress log</div>
+      <div id="log-list">
+        <div style="font-size:13px; color:var(--color-text-secondary); padding: 1rem 0; text-align:center;">No entries yet. Start logging your BD activity.</div>
+      </div>
+      <button class="add-btn" onclick="openLogModal()">+ log activity</button>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="prospect-modal">
+    <div class="modal">
+      <h3>Add prospect</h3>
+      <div class="form-row"><label>Business name</label><input type="text" id="p-name" placeholder="e.g. Dela Cruz Bakery"></div>
+      <div class="form-row"><label>Contact name</label><input type="text" id="p-contact" placeholder="e.g. Maria Dela Cruz"></div>
+      <div class="form-row"><label>Channel</label><select id="p-channel"><option>LinkedIn DM</option><option>Cold email</option><option>Warm intro</option><option>Phone call</option></select></div>
+      <div class="form-row"><label>Stage</label><select id="p-stage"><option value="new">New</option><option value="contacted">Contacted</option><option value="audit">Audit sent</option><option value="proposal">Proposal</option><option value="closed">Closed</option></select></div>
+      <div class="form-row"><label>Notes</label><textarea id="p-notes" placeholder="Anything to remember about this lead..."></textarea></div>
+      <div class="modal-btns">
+        <button class="btn-ghost" onclick="closeModal()">cancel</button>
+        <button class="btn-primary" onclick="addProspect()">add</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="log-modal">
+    <div class="modal">
+      <h3>Log activity</h3>
+      <div class="form-row"><label>What did you do?</label><textarea id="l-text" placeholder="e.g. Sent audit to 3 businesses on LinkedIn..."></textarea></div>
+      <div class="form-row"><label>Tag</label><select id="l-tag"><option>outreach</option><option>audit</option><option>follow-up</option><option>proposal</option><option>win</option><option>learning</option></select></div>
+      <div class="modal-btns">
+        <button class="btn-ghost" onclick="closeLogModal()">cancel</button>
+        <button class="btn-primary" onclick="addLog()">log it</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+let prospects = [];
+let logs = [];
+
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach((t,i) => {
+    const ids = ['pipeline','audit','scripts','log'];
+    t.classList.toggle('active', ids[i] === id);
+  });
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+function openModal() { document.getElementById('prospect-modal').classList.add('open'); }
+function closeModal() { document.getElementById('prospect-modal').classList.remove('open'); }
+function openLogModal() { document.getElementById('log-modal').classList.add('open'); }
+function closeLogModal() { document.getElementById('log-modal').classList.remove('open'); }
+
+function stageLabel(s) {
+  const map = { new:'new', contacted:'contacted', audit:'audit sent', proposal:'proposal', closed:'closed' };
+  return map[s] || s;
+}
+
+function addProspect() {
+  const name = document.getElementById('p-name').value.trim();
+  if (!name) return;
+  prospects.push({
+    name, contact: document.getElementById('p-contact').value.trim(),
+    channel: document.getElementById('p-channel').value,
+    stage: document.getElementById('p-stage').value,
+    notes: document.getElementById('p-notes').value.trim(),
+    date: new Date().toLocaleDateString('en-PH', {month:'short', day:'numeric'})
+  });
+  document.getElementById('p-name').value = '';
+  document.getElementById('p-contact').value = '';
+  document.getElementById('p-notes').value = '';
+  closeModal();
+  renderProspects();
+  updateMetrics();
+}
+
+function renderProspects() {
+  const list = document.getElementById('prospect-list');
+  if (!prospects.length) { list.innerHTML = '<div style="font-size:13px;color:var(--color-text-secondary);padding:1rem 0;text-align:center;">No prospects yet. Add your first lead.</div>'; return; }
+  list.innerHTML = prospects.map((p,i) => `
+    <div class="pipeline-item">
+      <div class="status-dot dot-${p.stage}"></div>
+      <div style="flex:1">
+        <div class="prospect-name">${p.name}</div>
+        <div class="prospect-meta">${p.contact ? p.contact + ' · ' : ''}${p.channel} · added ${p.date}</div>
+        ${p.notes ? `<div class="prospect-meta" style="margin-top:2px">${p.notes}</div>` : ''}
+      </div>
+      <span class="stage-badge badge-${p.stage}">${stageLabel(p.stage)}</span>
+    </div>
+  `).join('');
+}
+
+function updateMetrics() {
+  document.getElementById('m-total').textContent = prospects.length;
+  document.getElementById('m-audits').textContent = prospects.filter(p => ['audit','proposal','closed'].includes(p.stage)).length;
+  document.getElementById('m-proposals').textContent = prospects.filter(p => p.stage === 'proposal').length;
+  document.getElementById('m-closed').textContent = prospects.filter(p => p.stage === 'closed').length;
+}
+
+function updateScore() {
+  const checks = document.querySelectorAll('#tab-audit input[type=checkbox]');
+  const passed = Array.from(checks).filter(c => c.checked).length;
+  const total = checks.length;
+  const pct = Math.round((passed / total) * 100);
+  document.getElementById('score-bar').style.width = pct + '%';
+  document.getElementById('score-bar').style.background = pct < 40 ? '#E24B4A' : pct < 70 ? '#EF9F27' : '#1D9E75';
+  document.getElementById('score-label').textContent = passed + ' / ' + total + ' checks passed — ' + (pct < 40 ? 'lots to work on, good opportunity' : pct < 70 ? 'some gaps — solid pitch angle' : 'decent page — focus on SEO + content lift');
+}
+
+function addLog() {
+  const text = document.getElementById('l-text').value.trim();
+  if (!text) return;
+  const tag = document.getElementById('l-tag').value;
+  logs.unshift({ text, tag, date: new Date().toLocaleDateString('en-PH', {month:'short', day:'numeric', year:'numeric'}) });
+  document.getElementById('l-text').value = '';
+  closeLogModal();
+  renderLogs();
+}
+
+function renderLogs() {
+  const list = document.getElementById('log-list');
+  if (!logs.length) { list.innerHTML = '<div style="font-size:13px;color:var(--color-text-secondary);padding:1rem 0;text-align:center;">No entries yet. Start logging your BD activity.</div>'; return; }
+  list.innerHTML = logs.map(l => `
+    <div class="log-entry">
+      <div class="log-date">${l.date}<span class="log-tag">${l.tag}</span></div>
+      <div class="log-text">${l.text}</div>
+    </div>
+  `).join('');
+}
+
+function copyScript(id) {
+  const text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text).catch(() => {});
+}
+
+renderProspects();
+</script>
